@@ -33,7 +33,7 @@
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 pointer-events-none transition-opacity duration-300 z-[200] text-center min-w-[220px]"></div>
 
     <div id="app" class="max-w-xl mx-auto">
-        <!-- Header (高度縮小 15%) -->
+        <!-- Header -->
         <div class="bg-slate-900 pt-5 pb-4 px-6 text-white sticky top-0 z-50 shadow-xl">
             <div class="flex justify-between items-center">
                 <div>
@@ -54,7 +54,6 @@
             </div>
             
             <div class="mt-4 space-y-1">
-                <!-- 資產現值放大 -->
                 <p id="total-value" class="text-slate-400 text-2xl font-bold font-mono tracking-tight leading-none font-black"></p>
                 <p id="last-update" class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter font-black"></p>
             </div>
@@ -70,18 +69,17 @@
                 <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden ring-1 ring-slate-700">
                     <div id="goal-progress-bar" class="bg-gradient-to-r from-rose-500 via-pink-400 to-rose-400 h-full rounded-full transition-all duration-1000 ease-out w-0"></div>
                 </div>
-                <!-- 數值放大 -->
                 <div class="flex justify-between mt-2 text-sm font-mono font-black text-slate-300 tracking-tight">
                     <span id="current-val-display">---</span>
                     <span id="goal-val-display">---</span>
                 </div>
             </div>
 
-            <!-- Tabs -->
+            <!-- Tabs (修改順序: 配息明細移到定期計畫前面) -->
             <div class="flex mt-6 bg-white/10 p-1 rounded-xl text-[13px] font-bold backdrop-blur-md overflow-x-auto no-scrollbar gap-1 font-black">
                 <button onclick="switchTab('diagnosis')" id="btn-diagnosis" class="flex-none px-3.5 py-2.5 rounded-lg transition-all tab-active">資產庫存</button>
-                <button onclick="switchTab('plan')" id="btn-plan" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">定期計畫</button>
                 <button onclick="switchTab('dividend')" id="btn-dividend" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">配息明細</button>
+                <button onclick="switchTab('plan')" id="btn-plan" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">定期計畫</button>
                 <button onclick="switchTab('tracker')" id="btn-tracker" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">扣款行程</button>
                 <button onclick="switchTab('calculator')" id="btn-calculator" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">財富願景</button>
             </div>
@@ -106,17 +104,7 @@
             </section>
         </div>
 
-        <!-- Tab 2: Plan -->
-        <div id="tab-plan" class="hidden p-4 space-y-4 font-black">
-            <div class="flex justify-between items-end px-1 mb-2 font-black">
-                <div><h2 class="text-2xl font-black text-slate-800 tracking-tight font-black">定期定額戰略</h2><p class="text-xs text-slate-400 uppercase font-black tracking-widest mt-1 font-black">Monthly Investment Plan</p></div>
-                <div class="text-right font-black"><div id="plan-monthly-total" class="text-2xl font-mono font-black text-rose-600 font-black">$0</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest font-black">/ Month</div></div>
-            </div>
-            <div id="plan-bar" class="flex h-4 w-full rounded-full overflow-hidden shadow-inner bg-slate-100 mb-4 font-black"></div>
-            <div id="plan-list" class="space-y-3 font-black"></div>
-        </div>
-
-        <!-- Tab 3: Dividend -->
+        <!-- Tab 2: Dividend (位置調整至此) -->
         <div id="tab-dividend" class="hidden p-4 space-y-6 font-black">
             <div class="bg-white p-8 rounded-[3rem] shadow-xl border-2 border-rose-50 text-center relative overflow-hidden font-black">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-50 rounded-full blur-3xl opacity-60 font-black"></div>
@@ -133,8 +121,18 @@
             <div id="dividend-list" class="space-y-3 font-black"></div>
             <div class="px-4 py-3 bg-slate-100/50 rounded-2xl text-[11px] text-slate-400 font-bold flex items-start gap-2 font-black">
                 <span>ℹ️</span>
-                <span>僅計算具有固定配息政策之標的（0052, 00937B, 3231）。</span>
+                <span>僅計算具有固定配息政策之標的。</span>
             </div>
+        </div>
+
+        <!-- Tab 3: Plan (標題修改為「美日定期定額」) -->
+        <div id="tab-plan" class="hidden p-4 space-y-4 font-black">
+            <div class="flex justify-between items-end px-1 mb-2 font-black">
+                <div><h2 class="text-2xl font-black text-slate-800 tracking-tight font-black">美日定期定額</h2><p class="text-xs text-slate-400 uppercase font-black tracking-widest mt-1 font-black">Monthly Investment Plan</p></div>
+                <div class="text-right font-black"><div id="plan-monthly-total" class="text-2xl font-mono font-black text-rose-600 font-black">$0</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest font-black">/ Month</div></div>
+            </div>
+            <div id="plan-bar" class="flex h-4 w-full rounded-full overflow-hidden shadow-inner bg-slate-100 mb-4 font-black"></div>
+            <div id="plan-list" class="space-y-3 font-black"></div>
         </div>
 
         <!-- Tab 4: Tracker -->
@@ -148,7 +146,6 @@
 
         <!-- Tab 5: Calculator -->
         <div id="tab-calculator" class="hidden p-4 space-y-6">
-            <!-- 參數調整拉桿 (置頂) -->
             <div class="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 space-y-8 font-black font-black">
                 <div class="flex items-center mb-2 font-black">
                     <span class="w-1.5 h-4 bg-rose-400 rounded-full mr-2 font-black"></span>
@@ -177,7 +174,6 @@
                 </div>
             </div>
 
-            <!-- 放大字體的推演區塊 -->
             <div class="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 font-black font-black">
                 <div class="flex justify-between items-center mb-6 font-black font-black font-black font-black"><h3 class="text-base font-black text-slate-600 flex items-center font-black font-black font-black font-black"><span class="w-1.5 h-5 bg-orange-500 rounded-full mr-2 shadow-lg font-black font-black font-black font-black"></span>🌍 投資版圖演化推演</h3><span id="region-year-label" class="text-xs text-slate-500 font-black bg-slate-100 px-3 py-1 rounded-full font-black">第 10 年後</span></div>
                 <div class="space-y-6 font-black font-black">
@@ -207,10 +203,11 @@
     </div>
 
     <script>
+        // 定期定額計畫夥伴資料 (修改顏色設計以區別化)
         const planPartner = [
-            { id: '009805', name: '新光美國電力', type: '美國基建', amount: 5000, dates: '16 號', color: '#eab308' },
-            { id: '00645', name: '富邦日本', type: '日股大盤', amount: 9000, dates: '6, 16, 26 號', color: '#ea580c' },
-            { id: '00955', name: '中信日本商社', type: '日股商社', amount: 9000, dates: '6, 16, 26 號', color: '#f97316' }
+            { id: '009805', name: '新光美國電力', type: '美國基建', amount: 5000, dates: '16 號', color: '#3b82f6' }, // 藍色
+            { id: '00645', name: '富邦日本', type: '日股大盤', amount: 9000, dates: '6, 16, 26 號', color: '#0d9488' }, // 青色 (與橘色區隔)
+            { id: '00955', name: '中信日本商社', type: '日股商社', amount: 9000, dates: '6, 16, 26 號', color: '#f97316' }  // 橘色
         ];
 
         const schedulePartner = [
@@ -222,7 +219,7 @@
         const regionMapping = [
             { key: 'TW', name: '台股版圖', color: '#ef4444', ids: ['3231','0052'] },
             { key: 'US', name: '美/債版圖', color: '#3b82f6', ids: ['00937B','009805'] },
-            { key: 'JP', name: '日股版圖', color: '#f97316', ids: ['00955','00645'] }
+            { key: 'JP', name: '日股版圖', color: '#0d9488', ids: ['00955','00645'] }
         ];
 
         const divSettings = {
@@ -239,8 +236,8 @@
                 { id: '0052', name: '富邦科技', shares: 18000, value: 822780, color: '#dc2626' },
                 { id: '00937B', name: '群益ESG投等債20+', shares: 40000, value: 582400, color: '#0ea5e9' },
                 { id: '3231', name: '緯創', shares: 2000, value: 271680, color: '#8b5cf6' },
-                { id: '009805', name: '新光美國電力', shares: 3331, value: 50598, color: '#eab308' },
-                { id: '00645', name: '富邦日本', shares: 695, value: 35550, color: '#ea580c' },
+                { id: '009805', name: '新光美國電力', shares: 3331, value: 50598, color: '#3b82f6' },
+                { id: '00645', name: '富邦日本', shares: 695, value: 35550, color: '#0d9488' },
                 { id: '00955', name: '中信日本商社', shares: 1732, value: 26690, color: '#f97316' }
             ]
         };
@@ -296,7 +293,7 @@
                 let estAnnual = (setting.freq === '每月') ? h.shares * setting.amountPerShare * 12 : (setting.freq === '每季') ? h.shares * setting.amountPerShare * 4 : h.shares * setting.amountPerShare;
                 annualTotal += estAnnual;
                 const div = document.createElement('div'); div.className = "flex items-center p-5 bg-white rounded-3xl border border-rose-50 shadow-sm mb-3 font-black";
-                div.innerHTML = `<div class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-2xl mr-4">${setting.icon}</div><div class="flex-1 font-black"><div class="flex justify-between items-center mb-0.5"><span class="font-black text-slate-800 text-base font-black font-black">${h.name}</span><span class="font-mono font-black text-rose-500 font-black font-black">${formatCurrency(estAnnual)}<span class="text-[10px] text-slate-400 font-black">/年</span></span></div><div class="flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-tight font-black font-black font-black"><span>頻率：<span class="text-rose-400 font-black">${setting.freq}</span></span><span>每股配：<span class="font-mono text-slate-600 font-black font-black font-black font-black font-black">$${setting.amountPerShare}</span></span></div></div>`;
+                div.innerHTML = `<div class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-2xl mr-4">${setting.icon}</div><div class="flex-1 font-black"><div class="flex justify-between items-center mb-0.5"><span class="font-black text-slate-800 text-base font-black">${h.name}</span><span class="font-mono font-black text-rose-500">${formatCurrency(estAnnual)}<span class="text-[10px] text-slate-400 font-black">/年</span></span></div><div class="flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-tight font-black"><span>頻率：<span class="text-rose-400 font-black">${setting.freq}</span></span><span>每股配：<span class="font-mono text-slate-600 font-black">$${setting.amountPerShare}</span></span></div></div>`;
                 list.appendChild(div);
             });
             document.getElementById('div-annual-total').innerText = formatCurrency(annualTotal);
@@ -306,11 +303,14 @@
         function initPlan() {
             const list = document.getElementById('plan-list'); const bar = document.getElementById('plan-bar'); if(!list || !bar) return;
             bar.innerHTML = ''; list.innerHTML = '';
+            let totalPlanAmount = planPartner.reduce((s, p) => s + p.amount, 0);
+            document.getElementById('plan-monthly-total').innerText = formatCurrency(totalPlanAmount);
+
             [...planPartner].sort((a,b)=>b.amount-a.amount).forEach(item => {
-                const pct = (item.amount/appData.monthly)*100;
+                const pct = (item.amount/totalPlanAmount)*100;
                 const s = document.createElement('div'); s.style.width=pct+'%'; s.style.backgroundColor=item.color; s.className="h-full transition-all duration-1000"; bar.appendChild(s);
-                const d = document.createElement('div'); d.className = "flex items-center p-5 bg-white rounded-3xl border border-rose-100 shadow-sm mb-3 font-black font-black";
-                d.innerHTML = `<div class="w-1.5 h-12 rounded-full mr-4 shadow-lg font-black" style="background:${item.color}"></div><div class="flex-1"><div class="flex justify-between font-black text-slate-800 text-base"><span>${item.name}</span><span>${formatCurrency(item.amount)}</span></div><div class="text-[13px] text-slate-500 font-bold mt-1 font-black font-black font-black font-black">${item.type} • 每月 ${item.dates}</div></div><div class="text-xs font-black ml-2 font-black font-black font-black font-black font-black" style="color:${item.color}">${pct.toFixed(1)}%</div>`;
+                const d = document.createElement('div'); d.className = "flex items-center p-5 bg-white rounded-3xl border border-rose-100 shadow-sm mb-3 font-black";
+                d.innerHTML = `<div class="w-1.5 h-12 rounded-full mr-4 shadow-lg" style="background:${item.color}"></div><div class="flex-1"><div class="flex justify-between font-black text-slate-800 text-base"><span>${item.name}</span><span>${formatCurrency(item.amount)}</span></div><div class="text-[13px] text-slate-500 font-bold mt-1">${item.type} • 每月 ${item.dates}</div></div><div class="text-xs font-black ml-2" style="color:${item.color}">${pct.toFixed(1)}%</div>`;
                 list.appendChild(d);
             });
         }
@@ -319,14 +319,14 @@
             const list = document.getElementById('tracker-list'); if(!list) return;
             list.innerHTML = '';
             schedulePartner.forEach(item => {
-                const d = document.createElement('div'); d.className="task-item flex items-center p-5 bg-white rounded-3xl border border-rose-100 shadow-sm active:scale-95 cursor-pointer font-black font-black";
+                const d = document.createElement('div'); d.className="task-item flex items-center p-5 bg-white rounded-3xl border border-rose-100 shadow-sm active:scale-95 cursor-pointer font-black";
                 d.onclick = function() { 
                     const isDone = this.classList.contains('is-done');
                     if(!isDone) { this.classList.add('is-done'); checkedCount++; }
                     else { this.classList.remove('is-done'); checkedCount--; }
                     document.getElementById('progress-percent').innerText = Math.round((checkedCount/schedulePartner.length)*100)+'%';
                 };
-                d.innerHTML = `<div class="date-circle w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mr-4 border border-rose-100 relative overflow-hidden font-black font-black font-black"><span class="date-text text-xs font-black text-rose-400 absolute font-black font-black">${item.date}</span><svg class="check-icon w-6 h-6 text-white absolute font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div><div class="flex-1 font-black font-black"><div class="title-text font-black text-slate-800 text-base tracking-tight font-black font-black font-black">${item.label}<div class="strike-line font-black font-black"></div></div><div class="text-[11px] text-slate-400 mt-1 uppercase font-bold tracking-widest font-black font-black font-black">${item.code}</div></div><div class="font-mono font-black text-slate-600 font-black font-black font-black font-black font-black font-black font-black">${formatCurrency(item.amount)}</div>`;
+                d.innerHTML = `<div class="date-circle w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mr-4 border border-rose-100 relative overflow-hidden font-black"><span class="date-text text-xs font-black text-rose-400 absolute font-black">${item.date}</span><svg class="check-icon w-6 h-6 text-white absolute font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div><div class="flex-1 font-black"><div class="title-text font-black text-slate-800 text-base tracking-tight">${item.label}<div class="strike-line"></div></div><div class="text-[11px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${item.code}</div></div><div class="font-mono font-black text-slate-600">${formatCurrency(item.amount)}</div>`;
                 list.appendChild(d);
             });
         }
@@ -337,31 +337,31 @@
             regionMapping.forEach(rc => {
                 let v = appData.holdings.filter(h => rc.ids.includes(h.id)).reduce((s,h)=>s+h.value, 0);
                 if(v>0) {
-                    const s = document.createElement('div'); s.style.width=(appData.principal > 0 ? (v/appData.principal*100) : 0)+'%'; s.style.backgroundColor=rc.color; s.className="h-full transition-all duration-1000 font-black font-black font-black font-black"; bar.appendChild(s);
-                    const l = document.createElement('div'); l.className="flex justify-between items-center pb-2 border-b border-slate-50 font-black font-black font-black font-black";
-                    l.innerHTML = `<div class="flex items-center font-black font-black font-black"><div class="w-3 h-3 rounded-full mr-2 font-black font-black" style="background:${rc.color}"></div><span class="text-xs font-black text-slate-500 font-black font-black font-black">${rc.name}</span></div><span class="text-sm font-black font-black font-black font-black font-black">${appData.principal > 0 ? (v/appData.principal*100).toFixed(1) : 0}%</span>`;
+                    const s = document.createElement('div'); s.style.width=(appData.principal > 0 ? (v/appData.principal*100) : 0)+'%'; s.style.backgroundColor=rc.color; s.className="h-full transition-all duration-1000"; bar.appendChild(s);
+                    const l = document.createElement('div'); l.className="flex justify-between items-center pb-2 border-b border-slate-50 font-black";
+                    l.innerHTML = `<div class="flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background:${rc.color}"></div><span class="text-xs font-black text-slate-500">${rc.name}</span></div><span class="text-sm font-black">${appData.principal > 0 ? (v/appData.principal*100).toFixed(1) : 0}%</span>`;
                     leg.appendChild(l);
                 }
             });
             [...appData.holdings].sort((a,b)=>b.value-a.value).forEach(h => {
                 const pr = h.shares>0 ? (h.value/h.shares).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
                 const d = document.createElement('div'); d.className = "flex justify-between items-center border-b border-slate-50 py-4 last:border-0 active:bg-rose-50/50 rounded-xl transition-colors font-black";
-                d.innerHTML = `<div class="flex items-center font-black font-black font-black">
-                    <div class="w-2 h-10 rounded-full mr-4 shadow-sm font-black font-black font-black" style="background:${h.color}"></div>
-                    <div class="font-black font-black font-black">
-                        <div class="text-base font-black text-slate-800 font-black font-black font-black font-black">${h.name}</div>
-                        <div class="text-xs text-slate-500 font-bold mt-1 font-black font-black font-black font-black">
-                            <span class="font-mono text-slate-400 font-black font-black font-black font-black font-black font-black">${h.id}</span>
-                            <span class="mx-1.5 opacity-30 font-black font-black">|</span>
-                            <span class="font-black font-black font-black font-black font-black">${h.shares.toLocaleString()} 股</span>
-                            <span class="mx-1.5 opacity-30 font-black font-black font-black font-black font-black">|</span>
-                            <span class="font-mono text-rose-500 font-black font-black font-black font-black font-black">$${pr}</span>
+                d.innerHTML = `<div class="flex items-center font-black">
+                    <div class="w-2 h-10 rounded-full mr-4 shadow-sm" style="background:${h.color}"></div>
+                    <div class="font-black">
+                        <div class="text-base font-black text-slate-800">${h.name}</div>
+                        <div class="text-xs text-slate-500 font-bold mt-1">
+                            <span class="font-mono text-slate-400">${h.id}</span>
+                            <span class="mx-1.5 opacity-30">|</span>
+                            <span>${h.shares.toLocaleString()} 股</span>
+                            <span class="mx-1.5 opacity-30">|</span>
+                            <span class="font-mono text-rose-500">$${pr}</span>
                         </div>
                     </div>
                 </div>
-                <div class="text-right font-black font-black font-black">
-                    <div class="text-lg font-mono font-black text-slate-700 font-black font-black font-black font-black font-black font-black">${formatCurrency(h.value)}</div>
-                    <div class="text-sm text-rose-600 font-black font-black font-black font-black font-black font-black font-black font-black">${appData.principal > 0 ? (h.value/appData.principal*100).toFixed(1) : 0}%</div>
+                <div class="text-right font-black">
+                    <div class="text-lg font-mono font-black text-slate-700">${formatCurrency(h.value)}</div>
+                    <div class="text-sm text-rose-600">${appData.principal > 0 ? (h.value/appData.principal*100).toFixed(1) : 0}%</div>
                 </div>`;
                 list.appendChild(d);
             });
@@ -380,7 +380,7 @@
             document.getElementById('res-monthly').innerText = formatCurrency(mg);
             const msg = document.getElementById('goal-milestone-msg'); let hit = -1;
             for(let i=1; i<=years; i++) if(appData.principal*Math.pow(1+r,i*12)+appData.monthly*((Math.pow(1+r,i*12)-1)/r) >= appData.goal) { hit=i; break; }
-            msg.className = hit!==-1 ? "mt-4 mb-8 inline-block px-4 py-2 rounded-full text-[11px] font-black bg-orange-50 text-orange-600 border border-orange-200 shadow-sm font-black font-black font-black" : "mt-4 mb-8 inline-block px-4 py-2 rounded-full text-[11px] font-black bg-slate-50 text-slate-500 border font-black";
+            msg.className = hit!==-1 ? "mt-4 mb-8 inline-block px-4 py-2 rounded-full text-[11px] font-black bg-orange-50 text-orange-600 border border-orange-200 shadow-sm font-black" : "mt-4 mb-8 inline-block px-4 py-2 rounded-full text-[11px] font-black bg-slate-50 text-slate-500 border font-black";
             msg.innerHTML = hit!==-1 ? `✨ 預計第 ${hit} 年達陣目標 ✨` : `距離目標仍需 ${formatCurrency(appData.goal-total).replace('$','')}`;
             updateGrowthChart(years, rate, appData.principal, appData.monthly);
             updateRegionProjection(years, rate);
@@ -398,9 +398,9 @@
             rd.forEach(d => {
                 let cp = (appData.principal > 0 ? (d.cv/appData.principal)*100 : 0); let fp = (ft > 0 ? (d.fv/ft)*100 : 0);
                 if(cp > 0 || fp > 0) {
-                    const cs = document.createElement('div'); cs.style.width=cp+'%'; cs.style.backgroundColor=d.rc.color; cs.className="h-full opacity-50 font-black font-black font-black"; cBar.appendChild(cs);
-                    const fs = document.createElement('div'); fs.style.width=fp+'%'; fs.style.backgroundColor=d.rc.color; fs.className="h-full transition-all duration-700 font-black font-black font-black font-black"; fBar.appendChild(fs);
-                    const l = document.createElement('div'); l.className="font-black"; l.innerHTML = `<div class="flex items-center text-sm font-black text-slate-700 font-black font-black font-black font-black font-black font-black font-black font-black"><div class="w-2.5 h-2.5 rounded-full mr-2 font-black font-black font-black font-black font-black font-black font-black font-black font-black" style="background:${d.rc.color}"></div>${d.rc.name}</div><div class="pl-4.5 mt-1.5 text-xs text-slate-400 font-mono font-black font-black font-black font-black">現: ${cp.toFixed(1)}%</div><div class="pl-4.5 text-sm font-black font-mono mt-0.5 font-black font-black font-black font-black font-black font-black" style="color:${d.rc.color}">預: ${fp.toFixed(1)}%</div>`;
+                    const cs = document.createElement('div'); cs.style.width=cp+'%'; cs.style.backgroundColor=d.rc.color; cs.className="h-full opacity-50"; cBar.appendChild(cs);
+                    const fs = document.createElement('div'); fs.style.width=fp+'%'; fs.style.backgroundColor=d.rc.color; fs.className="h-full transition-all duration-700"; fBar.appendChild(fs);
+                    const l = document.createElement('div'); l.className="font-black"; l.innerHTML = `<div class="flex items-center text-sm font-black text-slate-700"><div class="w-2.5 h-2.5 rounded-full mr-2" style="background:${d.rc.color}"></div>${d.rc.name}</div><div class="pl-4.5 mt-1.5 text-xs text-slate-400 font-mono">現: ${cp.toFixed(1)}%</div><div class="pl-4.5 text-sm font-black font-mono mt-0.5" style="color:${d.rc.color}">預: ${fp.toFixed(1)}%</div>`;
                     leg.appendChild(l);
                 }
             });
@@ -428,7 +428,7 @@
 
         function openEditModal() {
             const container = document.getElementById('edit-form-container'); if(!container) return;
-            container.innerHTML = `<div class="bg-rose-50/50 p-4 rounded-2xl space-y-4 border border-rose-100/50 font-black font-black font-black font-black"><div><label class="block text-xs font-black text-rose-500 mb-1 font-black font-black font-black font-black font-black font-black">Google CSV 網址</label><input type="text" id="edit-sheetUrl" value="${appData.sheetUrl || ''}" placeholder="貼上 CSV 網址..." class="w-full bg-white border border-rose-200 rounded-lg p-3 text-xs font-mono outline-none font-black font-black font-black font-black font-black font-black"></div><div><label class="block text-xs font-black text-rose-500 mb-1 font-black font-black font-black font-black font-black font-black font-black font-black">目前總資產 (自動更新)</label><input type="number" id="edit-principal" value="${appData.principal}" class="w-full bg-slate-100 border border-rose-200 rounded-lg p-3 text-sm font-mono text-slate-500 font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black" readonly></div><div class="grid grid-cols-2 gap-3 font-black font-black font-black font-black font-black font-black"><div><label class="block text-xs font-black text-rose-500 mb-1 text-xs font-black font-black font-black font-black font-black font-black font-black font-black font-black">每月投入</label><input type="number" id="edit-monthly" value="${appData.monthly}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black font-black font-black font-black font-black font-black font-black font-black"></div><div><label class="block text-xs font-black text-rose-500 mb-1 text-xs font-black font-black font-black font-black font-black font-black font-black font-black font-black">目標資產</label><input type="number" id="edit-goal" value="${appData.goal}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black font-black font-black font-black font-black font-black font-black font-black font-black"></div></div></div><div class="pt-2 font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black"><h3 class="text-sm font-black mb-3 text-slate-800 text-center font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black">持股明細調整 (股數 / 市值)</h3><div class="space-y-3 font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black">${appData.holdings.map((h,i)=>`<div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-rose-50 shadow-sm font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black"><div class="text-xs font-bold w-[40%] text-slate-700 font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black">${h.name}</div><div class="flex w-[55%] gap-2 font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black"><input type="number" id="edit-shares-${i}" value="${h.shares}" class="w-1/3 p-2 text-xs font-mono rounded-lg border outline-none font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black"><input type="number" id="edit-value-${i}" value="${h.value}" class="w-2/3 p-2 text-xs font-mono rounded-lg border outline-none font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black font-black"></div></div>`).join('')}</div></div>`;
+            container.innerHTML = `<div class="bg-rose-50/50 p-4 rounded-2xl space-y-4 border border-rose-100/50 font-black"><div><label class="block text-xs font-black text-rose-500 mb-1">Google CSV 網址</label><input type="text" id="edit-sheetUrl" value="${appData.sheetUrl || ''}" placeholder="貼上 CSV 網址..." class="w-full bg-white border border-rose-200 rounded-lg p-3 text-xs font-mono outline-none font-black"></div><div><label class="block text-xs font-black text-rose-500 mb-1">目前總資產 (自動更新)</label><input type="number" id="edit-principal" value="${appData.principal}" class="w-full bg-slate-100 border border-rose-200 rounded-lg p-3 text-sm font-mono text-slate-500" readonly></div><div class="grid grid-cols-2 gap-3 font-black"><div><label class="block text-xs font-black text-rose-500 mb-1 text-xs font-black">每月投入</label><input type="number" id="edit-monthly" value="${appData.monthly}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black"></div><div><label class="block text-xs font-black text-rose-500 mb-1 text-xs font-black">目標資產</label><input type="number" id="edit-goal" value="${appData.goal}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black"></div></div></div><div class="pt-2 font-black"><h3 class="text-sm font-black mb-3 text-slate-800 text-center font-black">持股明細調整 (股數 / 市值)</h3><div class="space-y-3 font-black">${appData.holdings.map((h,i)=>`<div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-rose-50 shadow-sm font-black"><div class="text-xs font-bold w-[40%] text-slate-700">${h.name}</div><div class="flex w-[55%] gap-2 font-black"><input type="number" id="edit-shares-${i}" value="${h.shares}" class="w-1/3 p-2 text-xs font-mono rounded-lg border outline-none font-black"><input type="number" id="edit-value-${i}" value="${h.value}" class="w-2/3 p-2 text-xs font-mono rounded-lg border outline-none font-black"></div></div>`).join('')}</div></div>`;
             document.getElementById('edit-modal').classList.remove('hidden');
         }
         function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
