@@ -231,7 +231,7 @@
         };
 
         const defaultData = {
-            principal: 1899698, monthly: 28000, goal: 5000000, 
+            principal: 1925998, monthly: 28000, goal: 5000000, 
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
@@ -241,11 +241,11 @@
                 { id: '009805', name: '新光美國電力', shares: 3331, value: 50598, color: '#3b82f6' },
                 { id: '00645', name: '富邦日本', shares: 695, value: 35550, color: '#0d9488' },
                 { id: '00955', name: '中信日本商社', shares: 1732, value: 26690, color: '#f97316' },
-                { id: '00646', name: '元大S&P500', shares: 2000, value: 110000, color: '#10b981' }
+                { id: '00646', name: '元大S&P500', shares: 2000, value: 136300, color: '#10b981' }
             ]
         };
 
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v27')) || JSON.parse(JSON.stringify(defaultData));
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v28')) || JSON.parse(JSON.stringify(defaultData));
         let growthChartInstance = null; let checkedCount = 0;
 
         const formatCurrency = (num) => '$' + Math.round(num).toLocaleString();
@@ -273,7 +273,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v27', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v28', JSON.stringify(appData));
                 refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
@@ -447,7 +447,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; 
-                localStorage.setItem('investment_partner_solo_v27', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v28', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據已保存');
