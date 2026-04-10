@@ -180,7 +180,7 @@
                     <div><div class="flex justify-between text-base font-black text-slate-400 mb-2.5 uppercase tracking-widest font-black">現有庫存比重</div><div id="current-region-bar" class="flex h-4 w-full rounded-full overflow-hidden bg-slate-100 shadow-inner font-black font-black"></div></div>
                     <div><div class="flex justify-between text-base font-black text-rose-500 mb-2.5 uppercase tracking-widest font-black font-black font-black">計畫執行後修正比重</div><div id="future-region-bar" class="flex h-7 w-full rounded-full overflow-hidden bg-slate-100 ring-2 ring-rose-50 shadow-inner font-black font-black font-black"></div></div>
                 </div>
-                <div id="region-legend" class="grid grid-cols-3 gap-x-3 gap-y-6 mt-10 pt-8 border-t border-slate-50 font-black font-black text-sm"></div>
+                <div id="region-legend" class="grid grid-cols-2 gap-x-3 gap-y-6 mt-10 pt-8 border-t border-slate-50 font-black font-black text-sm"></div>
             </div>
 
             <div class="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 font-black">
@@ -207,18 +207,20 @@
         const planPartner = [
             { id: '009805', name: '新光美國電力', type: '美國基建', amount: 5000, dates: '16 號', color: '#3b82f6' }, // 藍色
             { id: '00645', name: '富邦日本', type: '日股大盤', amount: 9000, dates: '6, 16, 26 號', color: '#0d9488' }, // 青色 (與橘色區隔)
-            { id: '00955', name: '中信日本商社', type: '日股商社', amount: 9000, dates: '6, 16, 26 號', color: '#f97316' }  // 橘色
+            { id: '00955', name: '中信日本商社', type: '日股商社', amount: 9000, dates: '6, 16, 26 號', color: '#f97316' },  // 橘色
+            { id: '00646', name: '元大S&P500', type: '美股大盤', amount: 5000, dates: '16 號', color: '#10b981' }   // 綠色
         ];
 
         const schedulePartner = [
             { date: '06', label: '富邦日本 + 中信商社', code: '00645+00955', amount: 6000 },
-            { date: '16', label: '新光美電 + 富邦日本 + 中信商社', code: '009805+00645+00955', amount: 11000 },
+            { date: '16', label: '新光美電 + 富邦日本 + 中信商社 + S&P500', code: '009805+00645+00955+00646', amount: 16000 },
             { date: '26', label: '富邦日本 + 中信商社', code: '00645 + 00955', amount: 6000 }
         ];
 
         const regionMapping = [
             { key: 'TW', name: '台股版圖', color: '#ef4444', ids: ['3231','0052'] },
-            { key: 'US', name: '美/債版圖', color: '#3b82f6', ids: ['00937B','009805'] },
+            { key: 'US_EQ', name: '美股版圖', color: '#3b82f6', ids: ['009805','00646'] },
+            { key: 'US_BOND', name: '美債版圖', color: '#0ea5e9', ids: ['00937B'] },
             { key: 'JP', name: '日股版圖', color: '#0d9488', ids: ['00955','00645'] }
         ];
 
@@ -229,7 +231,7 @@
         };
 
         const defaultData = {
-            principal: 1789698, monthly: 23000, goal: 5000000, 
+            principal: 1899698, monthly: 28000, goal: 5000000, 
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
@@ -238,11 +240,12 @@
                 { id: '3231', name: '緯創', shares: 2000, value: 271680, color: '#8b5cf6' },
                 { id: '009805', name: '新光美國電力', shares: 3331, value: 50598, color: '#3b82f6' },
                 { id: '00645', name: '富邦日本', shares: 695, value: 35550, color: '#0d9488' },
-                { id: '00955', name: '中信日本商社', shares: 1732, value: 26690, color: '#f97316' }
+                { id: '00955', name: '中信日本商社', shares: 1732, value: 26690, color: '#f97316' },
+                { id: '00646', name: '元大S&P500', shares: 2000, value: 110000, color: '#10b981' }
             ]
         };
 
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v25')) || JSON.parse(JSON.stringify(defaultData));
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v27')) || JSON.parse(JSON.stringify(defaultData));
         let growthChartInstance = null; let checkedCount = 0;
 
         const formatCurrency = (num) => '$' + Math.round(num).toLocaleString();
@@ -270,7 +273,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v25', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v27', JSON.stringify(appData));
                 refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
@@ -444,7 +447,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; 
-                localStorage.setItem('investment_partner_solo_v25', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v27', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據已保存');
