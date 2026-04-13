@@ -26,6 +26,12 @@
         .task-item.is-done .check-icon { transform: translateY(0); opacity: 1; }
         .task-item .strike-line { content: ''; position: absolute; left: 0; top: 50%; width: 0; height: 2px; background: #cbd5e1; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .task-item.is-done .strike-line { width: 100%; }
+
+        /* 日曆特效 */
+        .calendar-cell { transition: all 0.2s ease; }
+        .calendar-cell:active { transform: scale(0.95); }
+        .calendar-active { background-color: #fff1f2; border-color: #fecdd3 !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .calendar-active .date-num { color: #e11d48; font-weight: 900; }
     </style>
 </head>
 <body class="bg-rose-50/30 min-h-screen pb-10 text-slate-900 relative font-black">
@@ -38,9 +44,6 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-black italic tracking-tighter text-rose-400 uppercase">冠伶投資</h1>
-                    <div class="mt-1 inline-block text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest bg-rose-600/30 border border-rose-500/50 text-rose-200">
-                        LIVE PORTFOLIO SYNC
-                    </div>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="syncPrices()" id="sync-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-lg active:scale-95 transition-all">
@@ -75,12 +78,12 @@
                 </div>
             </div>
 
-            <!-- Tabs (修改順序: 配息明細移到定期計畫前面) -->
+            <!-- Tabs -->
             <div class="flex mt-6 bg-white/10 p-1 rounded-xl text-[13px] font-bold backdrop-blur-md overflow-x-auto no-scrollbar gap-1 font-black">
                 <button onclick="switchTab('diagnosis')" id="btn-diagnosis" class="flex-none px-3.5 py-2.5 rounded-lg transition-all tab-active">資產庫存</button>
+                <button onclick="switchTab('calendar')" id="btn-calendar" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">投資日曆</button>
                 <button onclick="switchTab('dividend')" id="btn-dividend" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">配息明細</button>
-                <button onclick="switchTab('plan')" id="btn-plan" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">定期計畫</button>
-                <button onclick="switchTab('tracker')" id="btn-tracker" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">扣款行程</button>
+                <button onclick="switchTab('plan')" id="btn-plan" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">定期定額</button>
                 <button onclick="switchTab('calculator')" id="btn-calculator" class="flex-none px-3.5 py-2.5 rounded-lg transition-all text-slate-400">財富願景</button>
             </div>
         </div>
@@ -100,11 +103,63 @@
                     </h3>
                     <span id="holdings-summary" class="text-[11px] text-slate-400 font-bold uppercase tracking-widest font-mono font-black">---</span>
                 </div>
-                <div id="holdings-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-1 custom-scroll font-black"></div>
+                <div id="holdings-list" class="space-y-4 font-black"></div>
             </section>
         </div>
 
-        <!-- Tab 2: Dividend (位置調整至此) -->
+        <!-- Tab: 投資日曆 (New Tab) -->
+        <div id="tab-calendar" class="hidden p-4 space-y-6 font-black">
+            <!-- 日曆主體 -->
+            <div class="bg-white p-6 rounded-[3rem] shadow-xl border-2 border-rose-50 relative overflow-hidden font-black">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+                
+                <div class="flex justify-between items-center mb-6 px-1 relative z-10">
+                    <button onclick="changeMonth(-1)" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm border border-slate-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h3 id="calendar-header" class="text-lg font-black text-slate-800 tracking-widest">2026 年 4 月</h3>
+                    <button onclick="changeMonth(1)" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm border border-slate-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+                
+                <!-- 星期標題 -->
+                <div class="grid grid-cols-7 gap-1 text-center mb-3 relative z-10">
+                    <div class="text-[10px] text-rose-400 font-bold py-1 uppercase tracking-widest">日</div>
+                    <div class="text-[10px] text-slate-400 font-bold py-1 uppercase tracking-widest">一</div>
+                    <div class="text-[10px] text-slate-400 font-bold py-1 uppercase tracking-widest">二</div>
+                    <div class="text-[10px] text-slate-400 font-bold py-1 uppercase tracking-widest">三</div>
+                    <div class="text-[10px] text-slate-400 font-bold py-1 uppercase tracking-widest">四</div>
+                    <div class="text-[10px] text-slate-400 font-bold py-1 uppercase tracking-widest">五</div>
+                    <div class="text-[10px] text-rose-400 font-bold py-1 uppercase tracking-widest">六</div>
+                </div>
+                
+                <!-- 日期網格 -->
+                <div id="calendar-grid" class="grid grid-cols-7 gap-x-1 gap-y-2 relative z-10 min-h-[220px]">
+                    <!-- JS 動態生成 -->
+                </div>
+                
+                <!-- 圖例 -->
+                <div class="flex justify-center gap-4 mt-6 pt-4 border-t border-slate-50 text-sm font-bold text-slate-600 relative z-10">
+                    <div class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 mr-1.5"></span>定期扣款</div>
+                    <div class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 mr-1.5"></span>除權息</div>
+                    <div class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 mr-1.5"></span>股利發放</div>
+                </div>
+            </div>
+
+            <!-- 選定日期的事件詳情 -->
+            <div class="bg-white p-7 rounded-[2.5rem] shadow-md border border-slate-100 font-black relative overflow-hidden">
+                <div class="flex items-center mb-5 relative z-10">
+                    <span class="w-1.5 h-5 bg-indigo-400 rounded-full mr-3 shadow-lg"></span>
+                    <h3 id="selected-date-title" class="text-base font-black text-slate-800">載入中...</h3>
+                </div>
+                <div id="selected-date-events" class="space-y-3 relative z-10">
+                    <!-- JS 動態生成事件卡片 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Dividend -->
         <div id="tab-dividend" class="hidden p-4 space-y-6 font-black">
             <div class="bg-white p-8 rounded-[3rem] shadow-xl border-2 border-rose-50 text-center relative overflow-hidden font-black">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-50 rounded-full blur-3xl opacity-60 font-black"></div>
@@ -125,26 +180,32 @@
             </div>
         </div>
 
-        <!-- Tab 3: Plan (標題修改為「美日定期定額」) -->
-        <div id="tab-plan" class="hidden p-4 space-y-4 font-black">
-            <div class="flex justify-between items-end px-1 mb-2 font-black">
-                <div><h2 class="text-2xl font-black text-slate-800 tracking-tight font-black">美日定期定額</h2><p class="text-xs text-slate-400 uppercase font-black tracking-widest mt-1 font-black">Monthly Investment Plan</p></div>
-                <div class="text-right font-black"><div id="plan-monthly-total" class="text-2xl font-mono font-black text-rose-600 font-black">$0</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest font-black">/ Month</div></div>
+        <!-- Tab: Plan (整合原扣款行程) -->
+        <div id="tab-plan" class="hidden p-4 space-y-8 font-black">
+            <!-- 定期定額總覽 -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-end px-1 mb-2 font-black">
+                    <div><h2 class="text-2xl font-black text-slate-800 tracking-tight font-black">定期定額</h2><p class="text-xs text-slate-400 uppercase font-black tracking-widest mt-1 font-black">每月投資計畫</p></div>
+                    <div class="text-right font-black"><div id="plan-monthly-total" class="text-2xl font-mono font-black text-rose-600 font-black">$0</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest font-black">/ 月</div></div>
+                </div>
+                <div id="plan-bar" class="flex h-4 w-full rounded-full overflow-hidden shadow-inner bg-slate-100 mb-4 font-black"></div>
+                <div id="plan-list" class="space-y-3 font-black"></div>
             </div>
-            <div id="plan-bar" class="flex h-4 w-full rounded-full overflow-hidden shadow-inner bg-slate-100 mb-4 font-black"></div>
-            <div id="plan-list" class="space-y-3 font-black"></div>
+
+            <!-- 視覺分隔線 -->
+            <div class="border-t-2 border-dashed border-rose-100/60"></div>
+
+            <!-- 本月執行進度 -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-end px-1 mb-2 font-black font-black">
+                    <div><h2 class="text-2xl font-black text-slate-800 tracking-tight font-black">本月執行進度</h2><p class="text-xs text-slate-400 uppercase font-black tracking-widest">進度追蹤</p></div>
+                    <div id="progress-percent" class="text-4xl font-black text-rose-600 font-black">0%</div>
+                </div>
+                <div id="tracker-list" class="space-y-3 font-black"></div>
+            </div>
         </div>
 
-        <!-- Tab 4: Tracker -->
-        <div id="tab-tracker" class="hidden p-4 space-y-4 font-black">
-            <div class="flex justify-between items-end px-1 mb-2 font-black font-black">
-                <div><h2 class="text-2xl font-black text-slate-800 tracking-tight font-black">本月執行進度</h2><p class="text-xs text-slate-400 uppercase font-black tracking-widest">Execution Progress</p></div>
-                <div id="progress-percent" class="text-4xl font-black text-rose-600 font-black">0%</div>
-            </div>
-            <div id="tracker-list" class="space-y-3 font-black"></div>
-        </div>
-
-        <!-- Tab 5: Calculator -->
+        <!-- Tab: Calculator -->
         <div id="tab-calculator" class="hidden p-4 space-y-6">
             <div class="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 space-y-8 font-black font-black">
                 <div class="flex items-center mb-2 font-black">
@@ -203,54 +264,213 @@
     </div>
 
     <script>
-        // 定期定額計畫夥伴資料 (修改顏色設計以區別化)
+        // 定期定額計畫夥伴資料 (視覺呈現用)
         const planPartner = [
-            { id: '009805', name: '新光美國電力', type: '美國基建', amount: 5000, dates: '16 號', color: '#3b82f6' }, // 藍色
-            { id: '00645', name: '富邦日本', type: '日股大盤', amount: 9000, dates: '6, 16, 26 號', color: '#0d9488' }, // 青色 (與橘色區隔)
-            { id: '00955', name: '中信日本商社', type: '日股商社', amount: 9000, dates: '6, 16, 26 號', color: '#f97316' },  // 橘色
-            { id: '00646', name: '元大S&P500', type: '美股大盤', amount: 5000, dates: '16 號', color: '#10b981' }   // 綠色
-        ];
-
-        const schedulePartner = [
-            { date: '06', label: '富邦日本 + 中信商社', code: '00645+00955', amount: 6000 },
-            { date: '16', label: '新光美電 + 富邦日本 + 中信商社 + S&P500', code: '009805+00645+00955+00646', amount: 16000 },
-            { date: '26', label: '富邦日本 + 中信商社', code: '00645 + 00955', amount: 6000 }
+            { id: '009805', name: '新光美國電力', type: '美國基建', amount: 5000, dates: '16 號', color: '#3b82f6' }, 
+            { id: '00645', name: '富邦日本', type: '日股大盤', amount: 9000, dates: '6, 16, 26 號', color: '#0d9488' }, 
+            { id: '00955', name: '中信日本商社', type: '日股商社', amount: 9000, dates: '6, 16, 26 號', color: '#f97316' },  
+            { id: '00646', name: '元大S&P500', type: '美股大盤', amount: 5000, dates: '16 號', color: '#10b981' }   
         ];
 
         const regionMapping = [
-            { key: 'TW', name: '台股版圖', color: '#ef4444', ids: ['3231','0052'] },
+            { key: 'TW', name: '台股版圖', color: '#ef4444', ids: ['3231','0052','0050'] },
             { key: 'US_EQ', name: '美股版圖', color: '#3b82f6', ids: ['009805','00646'] },
             { key: 'US_BOND', name: '美債版圖', color: '#0ea5e9', ids: ['00937B'] },
             { key: 'JP', name: '日股版圖', color: '#0d9488', ids: ['00955','00645'] }
         ];
 
         const divSettings = {
+            '0050': { freq: '半年', amountPerShare: '待定', icon: '🇹🇼' },
             '0052': { freq: '每年', amountPerShare: 1.199, icon: '📅' },
             '00937B': { freq: '每月', amountPerShare: 0.072, icon: '🔥' },
             '3231': { freq: '每年', amountPerShare: 5.5, icon: '🏢' }
         };
 
         const defaultData = {
-            principal: 1925998, monthly: 28000, goal: 5000000, 
+            principal: 2074366, monthly: 28000, goal: 5000000, 
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
+                { id: '0050', name: '元大台灣50', shares: 1000, value: 80550, color: '#f59e0b' },
                 { id: '0052', name: '富邦科技', shares: 18000, value: 822780, color: '#dc2626' },
                 { id: '00937B', name: '群益ESG投等債20+', shares: 40000, value: 582400, color: '#0ea5e9' },
                 { id: '3231', name: '緯創', shares: 2000, value: 271680, color: '#8b5cf6' },
                 { id: '009805', name: '新光美國電力', shares: 3331, value: 50598, color: '#3b82f6' },
-                { id: '00645', name: '富邦日本', shares: 695, value: 35550, color: '#0d9488' },
-                { id: '00955', name: '中信日本商社', shares: 1732, value: 26690, color: '#f97316' },
-                { id: '00646', name: '元大S&P500', shares: 2000, value: 136300, color: '#10b981' }
+                { id: '00645', name: '富邦日本', shares: 695, value: 35549, color: '#0d9488' },
+                { id: '00955', name: '中信日本商社', shares: 1732, value: 26689, color: '#f97316' },
+                { id: '00646', name: '元大S&P500', shares: 3000, value: 204120, color: '#10b981' }
+            ],
+            // 允許使用者自訂的扣款行程
+            schedule: [
+                { date: '6', label: '富邦日本 + 中信商社', code: '00645+00955', amount: 6000 },
+                { date: '16', label: '新光美電 + 日本 + 商社 + S&P500', code: '009805+00645+00955+00646', amount: 16000 },
+                { date: '26', label: '富邦日本 + 中信商社', code: '00645+00955', amount: 6000 }
+            ],
+            // 允許使用者自訂的行事曆事件 (除權息、發放)
+            events: [
+                // 0050
+                { type: 'ex-div', title: '除息：0050 元大台灣50', freq: 'yearly', month: 1, day: 22 },
+                { type: 'payout', title: '發放：0050 股利入帳', freq: 'yearly', month: 2, day: 11 },
+                
+                // 00937B 前半段已公告時程
+                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 1, day: 20 },
+                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 2, day: 26 },
+                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 3, day: 17 },
+                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 4, day: 20 },
+                
+                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 1, day: 13 },
+                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 2, day: 13 },
+                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 3, day: 25 },
+                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 4, day: 14 },
+                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 5, day: 15 },
+
+                // 0052
+                { type: 'ex-div', title: '除息：0052 富邦科技', freq: 'yearly', month: 4, day: 20 },
+                { type: 'payout', title: '發放：0052 股利入帳', freq: 'yearly', month: 5, day: 15 },
+                
+                // 3231 預估
+                { type: 'ex-div', title: '預估除息：3231 緯創', freq: 'yearly', month: 6, day: 27 },
+                { type: 'payout', title: '預估發放：3231 緯創', freq: 'yearly', month: 7, day: 25 },
+                
+                // 00713 單純新增日曆發放日
+                { type: 'payout', title: '發放：00713 股利入帳', freq: 'yearly', month: 4, day: 14 }
             ]
         };
 
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v28')) || JSON.parse(JSON.stringify(defaultData));
+        // 升級版本號以載入新行事曆資料
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v35')) || JSON.parse(JSON.stringify(defaultData));
+        if(!appData.schedule) appData.schedule = [...defaultData.schedule];
+        if(!appData.events) appData.events = [...defaultData.events];
+
         let growthChartInstance = null; let checkedCount = 0;
+        let editState = null;
 
         const formatCurrency = (num) => '$' + Math.round(num).toLocaleString();
         function showToast(m) { const t = document.getElementById('toast'); t.innerText=m; t.classList.remove('opacity-0'); setTimeout(()=>t.classList.add('opacity-0'), 4500); }
 
+        // --- 編輯 Modal 與動態表單邏輯 ---
+        function openEditModal() {
+            editState = JSON.parse(JSON.stringify(appData));
+            renderEditForm();
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { 
+            document.getElementById('edit-modal').classList.add('hidden'); 
+        }
+
+        function renderEditForm() {
+            const container = document.getElementById('edit-form-container');
+            let html = `
+                <div class="bg-rose-50/50 p-4 rounded-2xl space-y-4 border border-rose-100/50 font-black">
+                    <div><label class="block text-xs font-black text-rose-500 mb-1">Google CSV 網址</label><input type="text" id="edit-sheetUrl" value="${editState.sheetUrl || ''}" placeholder="貼上 CSV 網址..." class="w-full bg-white border border-rose-200 rounded-lg p-3 text-xs font-mono outline-none font-black"></div>
+                    <div><label class="block text-xs font-black text-rose-500 mb-1">目前總資產 (自動更新)</label><input type="number" id="edit-principal" value="${editState.principal}" class="w-full bg-slate-100 border border-rose-200 rounded-lg p-3 text-sm font-mono text-slate-500" readonly></div>
+                    <div class="grid grid-cols-2 gap-3 font-black">
+                        <div><label class="block text-xs font-black text-rose-500 mb-1">每月投入</label><input type="number" id="edit-monthly" value="${editState.monthly}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black"></div>
+                        <div><label class="block text-xs font-black text-rose-500 mb-1">目標資產</label><input type="number" id="edit-goal" value="${editState.goal}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black"></div>
+                    </div>
+                </div>
+                <div class="pt-2 font-black">
+                    <h3 class="text-sm font-black mb-3 text-slate-800 text-center">持股明細調整 (股數 / 股價)</h3>
+                    <div class="space-y-3 font-black">${editState.holdings.map((h,i)=>{
+                        const p = h.shares > 0 ? (h.value / h.shares).toFixed(2) : 0;
+                        return `<div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-rose-50 shadow-sm font-black"><div class="text-xs font-bold w-[35%] text-slate-700">${h.name}</div><div class="flex w-[65%] gap-2 font-black"><div class="w-1/2 relative"><span class="absolute -top-2 left-2 bg-white px-1 text-[9px] text-slate-400">股數</span><input type="number" id="edit-shares-${i}" value="${h.shares}" class="w-full p-2 pt-2 text-xs font-mono rounded-lg border outline-none font-black"></div><div class="w-1/2 relative"><span class="absolute -top-2 left-2 bg-white px-1 text-[9px] text-slate-400">現價</span><input type="number" id="edit-price-${i}" value="${p}" step="0.01" class="w-full p-2 pt-2 text-xs font-mono rounded-lg border outline-none font-black"></div></div></div>`;
+                    }).join('')}</div>
+                </div>
+
+                <!-- 動態扣款行程 -->
+                <div class="pt-6 font-black border-t border-slate-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-black text-slate-800">每月定期定額扣款設定</h3>
+                        <button onclick="addScheduleRow()" class="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg shadow-sm active:scale-95 transition-transform">+ 新增</button>
+                    </div>
+                    <div class="space-y-2">
+                        ${editState.schedule.map((sc, i) => `
+                            <div class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm relative pr-8">
+                                <input type="number" value="${sc.date}" onchange="updateSchedule(${i}, 'date', this.value)" class="w-10 p-1.5 text-xs text-center border rounded-lg bg-white" placeholder="日">
+                                <span class="text-[10px] text-slate-400">號</span>
+                                <input type="text" value="${sc.label}" onchange="updateSchedule(${i}, 'label', this.value)" class="flex-1 min-w-[70px] p-1.5 text-[11px] border rounded-lg bg-white" placeholder="標籤(如:富邦)">
+                                <input type="text" value="${sc.code}" onchange="updateSchedule(${i}, 'code', this.value)" class="w-14 p-1.5 text-[11px] border rounded-lg bg-white" placeholder="代號">
+                                <input type="number" value="${sc.amount}" onchange="updateSchedule(${i}, 'amount', this.value)" class="w-16 p-1.5 text-[11px] border rounded-lg bg-white" placeholder="金額">
+                                <button onclick="removeScheduleRow(${i})" class="absolute right-2 text-rose-400 hover:text-rose-600 font-bold p-1">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- 動態日曆事件 -->
+                <div class="pt-6 pb-2 font-black border-t border-slate-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-black text-slate-800">行事曆特殊事件 (除權息/發放)</h3>
+                        <button onclick="addEventRow()" class="text-[10px] bg-rose-100 text-rose-700 px-2.5 py-1 rounded-lg shadow-sm active:scale-95 transition-transform">+ 新增</button>
+                    </div>
+                    <div class="space-y-2">
+                        ${editState.events.map((ev, i) => `
+                            <div class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm relative pr-8">
+                                <select onchange="updateEvent(${i}, 'type', this.value)" class="w-[65px] p-1.5 text-[10px] border rounded-lg bg-white">
+                                    <option value="ex-div" ${ev.type==='ex-div'?'selected':''}>✂️ 除息</option>
+                                    <option value="payout" ${ev.type==='payout'?'selected':''}>💰 發放</option>
+                                </select>
+                                <select onchange="updateEvent(${i}, 'freq', this.value)" class="w-[50px] p-1.5 text-[10px] border rounded-lg bg-white">
+                                    <option value="monthly" ${ev.freq==='monthly'?'selected':''}>每月</option>
+                                    <option value="yearly" ${ev.freq==='yearly'?'selected':''}>每年</option>
+                                </select>
+                                <input type="number" value="${ev.month||''}" onchange="updateEvent(${i}, 'month', this.value)" class="w-9 p-1.5 text-[11px] text-center border rounded-lg ${ev.freq==='monthly'?'bg-slate-200 cursor-not-allowed':'bg-white'}" placeholder="月" ${ev.freq==='monthly'?'disabled':''}>
+                                <span class="text-[10px] text-slate-400">/</span>
+                                <input type="number" value="${ev.day}" onchange="updateEvent(${i}, 'day', this.value)" class="w-9 p-1.5 text-[11px] text-center border rounded-lg bg-white" placeholder="日">
+                                <input type="text" value="${ev.title}" onchange="updateEvent(${i}, 'title', this.value)" class="flex-1 min-w-[70px] p-1.5 text-[11px] border rounded-lg bg-white" placeholder="事件名稱">
+                                <button onclick="removeEventRow(${i})" class="absolute right-2 text-rose-400 hover:text-rose-600 font-bold p-1">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Global functions for dynamic bindings
+        window.updateSchedule = (i, field, val) => { editState.schedule[i][field] = val; };
+        window.addScheduleRow = () => { editState.schedule.push({date:'', label:'', code:'', amount:''}); renderEditForm(); };
+        window.removeScheduleRow = (i) => { editState.schedule.splice(i, 1); renderEditForm(); };
+
+        window.updateEvent = (i, field, val) => {
+            editState.events[i][field] = val;
+            if(field === 'freq') { 
+                editState.events[i].month = val === 'monthly' ? '' : '1'; 
+                renderEditForm(); // Re-render to toggle disabled state on month input
+            }
+        };
+        window.addEventRow = () => { editState.events.push({type:'ex-div', freq:'yearly', month:'1', day:'1', title:'新事件'}); renderEditForm(); };
+        window.removeEventRow = (i) => { editState.events.splice(i, 1); renderEditForm(); };
+
+        function saveData() {
+            try {
+                // 抓取靜態輸入框
+                editState.sheetUrl = document.getElementById('edit-sheetUrl').value.trim();
+                editState.monthly = Number(document.getElementById('edit-monthly').value);
+                editState.goal = Number(document.getElementById('edit-goal').value);
+                let np = 0; 
+                editState.holdings.forEach((h,i)=>{ 
+                    h.shares = Number(document.getElementById(`edit-shares-${i}`).value); 
+                    const currentPrice = Number(document.getElementById(`edit-price-${i}`).value); 
+                    h.value = Math.round(h.shares * currentPrice); 
+                    np += h.value; 
+                });
+                editState.principal = np; 
+                
+                // 套用至主系統
+                appData = JSON.parse(JSON.stringify(editState)); 
+                localStorage.setItem('investment_partner_solo_v35', JSON.stringify(appData));
+                closeEditModal(); 
+                refreshDashboard(); 
+                showToast('✅ 數據與行事曆已保存');
+            } catch (e) {
+                showToast('❌ 儲存失敗');
+            }
+        }
+        // --- 結束 編輯 Modal 邏輯 ---
+
+        // --- 價格同步 ---
         async function syncPrices() {
             if (!appData.sheetUrl) { showToast('請先貼上 CSV 網址！'); openEditModal(); return; }
             const btn = document.getElementById('sync-btn'); btn.innerHTML = `<span class="loading-dots text-white">同步中</span>`; btn.disabled = true;
@@ -273,19 +493,176 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v28', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v35', JSON.stringify(appData));
                 refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
 
+        // --- 日曆功能相關資料與邏輯 ---
+        let currentCalendarDate = new Date();
+        let selectedCalendarDate = new Date();
+
+        const generateEvents = (year, month) => {
+            const events = {};
+
+            // 取得下一個工作日 (避開六日)
+            const getNextWorkingDay = (y, m, d) => {
+                let date = new Date(y, m - 1, d);
+                while (date.getDay() === 0 || date.getDay() === 6) {
+                    date.setDate(date.getDate() + 1);
+                }
+                return date;
+            };
+
+            const addEvent = (baseYear, baseMonth, baseDay, eventObj) => {
+                let actualDate = getNextWorkingDay(baseYear, baseMonth, baseDay);
+                
+                // 僅加入屬於當前日曆月份的事件
+                if (actualDate.getMonth() + 1 === month && actualDate.getFullYear() === year) {
+                    const dateStr = `${actualDate.getFullYear()}-${String(actualDate.getMonth() + 1).padStart(2, '0')}-${String(actualDate.getDate()).padStart(2, '0')}`;
+                    if (!events[dateStr]) events[dateStr] = [];
+                    
+                    let displayTitle = eventObj.title;
+                    if (actualDate.getDate() !== baseDay || actualDate.getMonth() + 1 !== baseMonth) {
+                        displayTitle += ` (遇假日順延)`;
+                    }
+                    events[dateStr].push({ ...eventObj, title: displayTitle });
+                }
+            };
+
+            const evaluateMonthEvents = (evalYear, evalMonth) => {
+                // 1. 讀取使用者自訂的扣款行程
+                appData.schedule.forEach(sc => {
+                    const day = parseInt(sc.date);
+                    if(!isNaN(day)) {
+                        addEvent(evalYear, evalMonth, day, { type: 'buy', title: `扣款：${sc.label} ($${sc.amount})`, color: 'bg-emerald-400', icon: '🛒' });
+                    }
+                });
+
+                // 2. 讀取使用者自訂的日曆事件
+                appData.events.forEach(ev => {
+                    const evMonth = parseInt(ev.month);
+                    const evDay = parseInt(ev.day);
+                    if (ev.freq === 'monthly' || (ev.freq === 'yearly' && evMonth === evalMonth)) {
+                        if(!isNaN(evDay)) {
+                            const color = ev.type === 'payout' ? 'bg-amber-400' : 'bg-rose-400';
+                            const icon = ev.type === 'payout' ? '💰' : '✂️';
+                            addEvent(evalYear, evalMonth, evDay, { type: ev.type, title: ev.title, color, icon });
+                        }
+                    }
+                });
+            };
+
+            // 檢查上個月與這個月的事件，確保月底遇假日順延到下個月初的事件也能正確顯示
+            let prevMonth = month === 1 ? 12 : month - 1;
+            let prevYear = month === 1 ? year - 1 : year;
+            evaluateMonthEvents(prevYear, prevMonth);
+            evaluateMonthEvents(year, month);
+
+            return events;
+        };
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth() + 1; // 1-12
+            document.getElementById('calendar-header').innerText = `${year} 年 ${month} 月`;
+
+            const firstDay = new Date(year, month - 1, 1).getDay();
+            const daysInMonth = new Date(year, month, 0).getDate();
+            
+            const events = generateEvents(year, month);
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'aspect-square rounded-2xl bg-transparent';
+                grid.appendChild(emptyCell);
+            }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const dayEvents = events[dateStr] || [];
+                
+                const cell = document.createElement('div');
+                const isSelected = selectedCalendarDate.getFullYear() === year && (selectedCalendarDate.getMonth() + 1) === month && selectedCalendarDate.getDate() === i;
+                
+                cell.className = `calendar-cell aspect-square flex flex-col items-center pt-2 pb-1 rounded-2xl border border-transparent hover:border-rose-100 cursor-pointer ${isSelected ? 'calendar-active' : 'bg-slate-50/50'}`;
+                cell.onclick = () => {
+                    selectedCalendarDate = new Date(year, month - 1, i);
+                    renderCalendar();
+                    renderSelectedDateEvents();
+                };
+
+                const numSpan = document.createElement('span');
+                numSpan.className = `date-num text-[13px] font-black ${isSelected ? '' : 'text-slate-600'}`;
+                numSpan.innerText = i;
+                cell.appendChild(numSpan);
+
+                if (dayEvents.length > 0) {
+                    const dotsContainer = document.createElement('div');
+                    dotsContainer.className = 'flex gap-[2px] mt-auto pb-1';
+                    dayEvents.slice(0, 3).forEach(ev => {
+                        const dot = document.createElement('span');
+                        dot.className = `w-1.5 h-1.5 rounded-full ${ev.color}`;
+                        dotsContainer.appendChild(dot);
+                    });
+                    cell.appendChild(dotsContainer);
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderSelectedDateEvents() {
+            const year = selectedCalendarDate.getFullYear();
+            const month = selectedCalendarDate.getMonth() + 1;
+            const day = selectedCalendarDate.getDate();
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            document.getElementById('selected-date-title').innerText = `${month} 月 ${day} 日 行程`;
+            
+            const events = generateEvents(year, month)[dateStr] || [];
+            const container = document.getElementById('selected-date-events');
+            container.innerHTML = '';
+
+            if (events.length === 0) {
+                container.innerHTML = `<div class="p-5 text-center text-xs text-slate-400 font-bold bg-slate-50 rounded-2xl border border-dashed border-slate-200">本日無安排行程</div>`;
+                return;
+            }
+
+            events.forEach(ev => {
+                const card = document.createElement('div');
+                card.className = "flex items-center p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm";
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-lg mr-4 border border-slate-100">${ev.icon}</div>
+                    <div class="flex-1">
+                        <div class="text-sm font-black text-slate-800">${ev.title}</div>
+                        <div class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-bold">${ev.type === 'buy' ? 'Regular Investment' : ev.type === 'ex-div' ? 'Ex-Dividend Date' : 'Dividend Payout'}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        // --- 結束 日曆功能 ---
+
         function switchTab(tab) {
-            ['diagnosis','plan','dividend','tracker','calculator'].forEach(t => {
+            ['diagnosis','calendar','plan','dividend','calculator'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`); if(el) el.classList.add('hidden');
                 const btn = document.getElementById(`btn-${t}`); if(btn) { btn.classList.remove('tab-active'); btn.classList.add('text-slate-400'); }
             });
             const activeTab = document.getElementById(`tab-${tab}`); if(activeTab) activeTab.classList.remove('hidden');
             const activeBtn = document.getElementById(`btn-${tab}`); if(activeBtn) { activeBtn.classList.add('tab-active'); activeBtn.classList.remove('text-slate-400'); }
             if(tab === 'calculator') setTimeout(calculate, 100);
+            if(tab === 'calendar') {
+                renderCalendar();
+                renderSelectedDateEvents();
+            }
         }
 
         function initDividend() {
@@ -293,10 +670,25 @@
             list.innerHTML = ''; let annualTotal = 0;
             appData.holdings.forEach(h => {
                 const setting = divSettings[h.id]; if (!setting) return; 
-                let estAnnual = (setting.freq === '每月') ? h.shares * setting.amountPerShare * 12 : (setting.freq === '每季') ? h.shares * setting.amountPerShare * 4 : h.shares * setting.amountPerShare;
-                annualTotal += estAnnual;
+                
+                let isTBD = setting.amountPerShare === '待定';
+                let estAnnual = 0;
+                
+                if (!isTBD) {
+                    estAnnual = (setting.freq === '每月') ? h.shares * setting.amountPerShare * 12 : 
+                                (setting.freq === '每季') ? h.shares * setting.amountPerShare * 4 : 
+                                (setting.freq === '半年') ? h.shares * setting.amountPerShare * 2 : 
+                                h.shares * setting.amountPerShare;
+                    annualTotal += estAnnual;
+                }
+
                 const div = document.createElement('div'); div.className = "flex items-center p-5 bg-white rounded-3xl border border-rose-50 shadow-sm mb-3 font-black";
-                div.innerHTML = `<div class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-2xl mr-4">${setting.icon}</div><div class="flex-1 font-black"><div class="flex justify-between items-center mb-0.5"><span class="font-black text-slate-800 text-base font-black">${h.name}</span><span class="font-mono font-black text-rose-500">${formatCurrency(estAnnual)}<span class="text-[10px] text-slate-400 font-black">/年</span></span></div><div class="flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-tight font-black"><span>頻率：<span class="text-rose-400 font-black">${setting.freq}</span></span><span>每股配：<span class="font-mono text-slate-600 font-black">$${setting.amountPerShare}</span></span></div></div>`;
+                
+                const displayAnnual = isTBD ? '待定' : formatCurrency(estAnnual);
+                const displayPerShare = isTBD ? '待定' : `$${setting.amountPerShare}`;
+                const displaySuffix = isTBD ? '' : '<span class="text-[10px] text-slate-400 font-black">/年</span>';
+                
+                div.innerHTML = `<div class="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-2xl mr-4">${setting.icon}</div><div class="flex-1 font-black"><div class="flex justify-between items-center mb-0.5"><span class="font-black text-slate-800 text-base font-black">${h.name}</span><span class="font-mono font-black text-rose-500">${displayAnnual}${displaySuffix}</span></div><div class="flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-tight font-black"><span>頻率：<span class="text-rose-400 font-black">${setting.freq}</span></span><span>每股配：<span class="font-mono text-slate-600 font-black">${displayPerShare}</span></span></div></div>`;
                 list.appendChild(div);
             });
             document.getElementById('div-annual-total').innerText = formatCurrency(annualTotal);
@@ -321,13 +713,13 @@
         function initTracker() {
             const list = document.getElementById('tracker-list'); if(!list) return;
             list.innerHTML = '';
-            schedulePartner.forEach(item => {
+            appData.schedule.forEach(item => {
                 const d = document.createElement('div'); d.className="task-item flex items-center p-5 bg-white rounded-3xl border border-rose-100 shadow-sm active:scale-95 cursor-pointer font-black";
                 d.onclick = function() { 
                     const isDone = this.classList.contains('is-done');
                     if(!isDone) { this.classList.add('is-done'); checkedCount++; }
                     else { this.classList.remove('is-done'); checkedCount--; }
-                    document.getElementById('progress-percent').innerText = Math.round((checkedCount/schedulePartner.length)*100)+'%';
+                    document.getElementById('progress-percent').innerText = Math.round((checkedCount/appData.schedule.length)*100)+'%';
                 };
                 d.innerHTML = `<div class="date-circle w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mr-4 border border-rose-100 relative overflow-hidden font-black"><span class="date-text text-xs font-black text-rose-400 absolute font-black">${item.date}</span><svg class="check-icon w-6 h-6 text-white absolute font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div><div class="flex-1 font-black"><div class="title-text font-black text-slate-800 text-base tracking-tight">${item.label}<div class="strike-line"></div></div><div class="text-[11px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${item.code}</div></div><div class="font-mono font-black text-slate-600">${formatCurrency(item.amount)}</div>`;
                 list.appendChild(d);
@@ -342,7 +734,7 @@
                 if(v>0) {
                     const s = document.createElement('div'); s.style.width=(appData.principal > 0 ? (v/appData.principal*100) : 0)+'%'; s.style.backgroundColor=rc.color; s.className="h-full transition-all duration-1000"; bar.appendChild(s);
                     const l = document.createElement('div'); l.className="flex justify-between items-center pb-2 border-b border-slate-50 font-black";
-                    l.innerHTML = `<div class="flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background:${rc.color}"></div><span class="text-xs font-black text-slate-500">${rc.name}</span></div><span class="text-sm font-black">${appData.principal > 0 ? (v/appData.principal*100).toFixed(1) : 0}%</span>`;
+                    l.innerHTML = `<div class="flex items-center"><div class="w-3.5 h-3.5 rounded-full mr-2.5" style="background:${rc.color}"></div><span class="text-sm sm:text-base font-black text-slate-600">${rc.name}</span></div><span class="text-lg sm:text-xl font-black text-slate-800">${appData.principal > 0 ? (v/appData.principal*100).toFixed(1) : 0}%</span>`;
                     leg.appendChild(l);
                 }
             });
@@ -429,35 +821,9 @@
             const bar = document.getElementById('goal-progress-bar'); if(bar) setTimeout(()=> bar.style.width=pct+'%', 100);
         }
 
-        function openEditModal() {
-            const container = document.getElementById('edit-form-container'); if(!container) return;
-            container.innerHTML = `<div class="bg-rose-50/50 p-4 rounded-2xl space-y-4 border border-rose-100/50 font-black"><div><label class="block text-xs font-black text-rose-500 mb-1">Google CSV 網址</label><input type="text" id="edit-sheetUrl" value="${appData.sheetUrl || ''}" placeholder="貼上 CSV 網址..." class="w-full bg-white border border-rose-200 rounded-lg p-3 text-xs font-mono outline-none font-black"></div><div><label class="block text-xs font-black text-rose-500 mb-1">目前總資產 (自動更新)</label><input type="number" id="edit-principal" value="${appData.principal}" class="w-full bg-slate-100 border border-rose-200 rounded-lg p-3 text-sm font-mono text-slate-500" readonly></div><div class="grid grid-cols-2 gap-3 font-black"><div><label class="block text-xs font-black text-rose-500 mb-1 text-xs font-black">每月投入</label><input type="number" id="edit-monthly" value="${appData.monthly}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black"></div><div><label class="block text-xs font-black text-rose-500 mb-1 text-xs font-black">目標資產</label><input type="number" id="edit-goal" value="${appData.goal}" class="w-full bg-white border border-rose-200 rounded-lg p-3 text-sm font-mono font-black"></div></div></div><div class="pt-2 font-black"><h3 class="text-sm font-black mb-3 text-slate-800 text-center font-black">持股明細調整 (股數 / 市值)</h3><div class="space-y-3 font-black">${appData.holdings.map((h,i)=>`<div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-rose-50 shadow-sm font-black"><div class="text-xs font-bold w-[40%] text-slate-700">${h.name}</div><div class="flex w-[55%] gap-2 font-black"><input type="number" id="edit-shares-${i}" value="${h.shares}" class="w-1/3 p-2 text-xs font-mono rounded-lg border outline-none font-black"><input type="number" id="edit-value-${i}" value="${h.value}" class="w-2/3 p-2 text-xs font-mono rounded-lg border outline-none font-black"></div></div>`).join('')}</div></div>`;
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
-        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
-        function saveData() {
-            try {
-                appData.sheetUrl = document.getElementById('edit-sheetUrl').value.trim();
-                appData.monthly = Number(document.getElementById('edit-monthly').value);
-                appData.goal = Number(document.getElementById('edit-goal').value);
-                let np = 0; 
-                appData.holdings.forEach((h,i)=>{ 
-                    h.shares = Number(document.getElementById(`edit-shares-${i}`).value); 
-                    h.value = Number(document.getElementById(`edit-value-${i}`).value); 
-                    np += h.value; 
-                });
-                appData.principal = np; 
-                localStorage.setItem('investment_partner_solo_v28', JSON.stringify(appData));
-                closeEditModal(); 
-                refreshDashboard(); 
-                showToast('✅ 數據已保存');
-            } catch (e) {
-                showToast('❌ 儲存失敗');
-            }
-        }
         function refreshDashboard() { 
             document.getElementById('total-value').innerText = '資產現值: ' + formatCurrency(appData.principal); 
-            initGoalTracker(); initPlan(); initTracker(); initDiagnosis(); initDividend(); calculate();
+            initGoalTracker(); initPlan(); initTracker(); initDiagnosis(); initDividend(); calculate(); renderCalendar(); renderSelectedDateEvents();
         }
         window.onload = () => { refreshDashboard(); switchTab('diagnosis'); };
     </script>
