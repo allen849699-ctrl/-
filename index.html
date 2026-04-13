@@ -338,7 +338,7 @@
         };
 
         // 升級版本號以載入新行事曆資料
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v35')) || JSON.parse(JSON.stringify(defaultData));
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v36')) || JSON.parse(JSON.stringify(defaultData));
         if(!appData.schedule) appData.schedule = [...defaultData.schedule];
         if(!appData.events) appData.events = [...defaultData.events];
 
@@ -460,7 +460,7 @@
                 
                 // 套用至主系統
                 appData = JSON.parse(JSON.stringify(editState)); 
-                localStorage.setItem('investment_partner_solo_v35', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v36', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據與行事曆已保存');
@@ -493,7 +493,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v35', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v36', JSON.stringify(appData));
                 refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
@@ -514,8 +514,8 @@
                 return date;
             };
 
-            const addEvent = (baseYear, baseMonth, baseDay, eventObj) => {
-                let actualDate = getNextWorkingDay(baseYear, baseMonth, baseDay);
+            const addEvent = (baseYear, baseMonth, baseDay, eventObj, disableShift = false) => {
+                let actualDate = disableShift ? new Date(baseYear, baseMonth - 1, baseDay) : getNextWorkingDay(baseYear, baseMonth, baseDay);
                 
                 // 僅加入屬於當前日曆月份的事件
                 if (actualDate.getMonth() + 1 === month && actualDate.getFullYear() === year) {
@@ -523,7 +523,7 @@
                     if (!events[dateStr]) events[dateStr] = [];
                     
                     let displayTitle = eventObj.title;
-                    if (actualDate.getDate() !== baseDay || actualDate.getMonth() + 1 !== baseMonth) {
+                    if (!disableShift && (actualDate.getDate() !== baseDay || actualDate.getMonth() + 1 !== baseMonth)) {
                         displayTitle += ` (遇假日順延)`;
                     }
                     events[dateStr].push({ ...eventObj, title: displayTitle });
@@ -531,15 +531,15 @@
             };
 
             const evaluateMonthEvents = (evalYear, evalMonth) => {
-                // 1. 讀取使用者自訂的扣款行程
+                // 1. 讀取使用者自訂的扣款行程 (固定日期，不隨週末順延)
                 appData.schedule.forEach(sc => {
                     const day = parseInt(sc.date);
                     if(!isNaN(day)) {
-                        addEvent(evalYear, evalMonth, day, { type: 'buy', title: `扣款：${sc.label} ($${sc.amount})`, color: 'bg-emerald-400', icon: '🛒' });
+                        addEvent(evalYear, evalMonth, day, { type: 'buy', title: `扣款：${sc.label} ($${sc.amount})`, color: 'bg-emerald-400', icon: '🛒' }, true);
                     }
                 });
 
-                // 2. 讀取使用者自訂的日曆事件
+                // 2. 讀取使用者自訂的日曆事件 (自動避開週末順延)
                 appData.events.forEach(ev => {
                     const evMonth = parseInt(ev.month);
                     const evDay = parseInt(ev.day);
@@ -547,7 +547,7 @@
                         if(!isNaN(evDay)) {
                             const color = ev.type === 'payout' ? 'bg-amber-400' : 'bg-rose-400';
                             const icon = ev.type === 'payout' ? '💰' : '✂️';
-                            addEvent(evalYear, evalMonth, evDay, { type: ev.type, title: ev.title, color, icon });
+                            addEvent(evalYear, evalMonth, evDay, { type: ev.type, title: ev.title, color, icon }, false);
                         }
                     }
                 });
