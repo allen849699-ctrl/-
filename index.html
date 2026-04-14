@@ -273,7 +273,7 @@
         ];
 
         const regionMapping = [
-            { key: 'TW', name: '台股版圖', color: '#ef4444', ids: ['3231','0052','0050'] },
+            { key: 'TW', name: '台股版圖', color: '#ef4444', ids: ['0052','0050'] },
             { key: 'US_EQ', name: '美股版圖', color: '#3b82f6', ids: ['009805','00646'] },
             { key: 'US_BOND', name: '美債版圖', color: '#0ea5e9', ids: ['00937B'] },
             { key: 'JP', name: '日股版圖', color: '#0d9488', ids: ['00955','00645'] }
@@ -282,23 +282,21 @@
         const divSettings = {
             '0050': { freq: '半年', amountPerShare: '待定', icon: '🇹🇼' },
             '0052': { freq: '每年', amountPerShare: 1.199, icon: '📅' },
-            '00937B': { freq: '每月', amountPerShare: 0.072, icon: '🔥' },
-            '3231': { freq: '每年', amountPerShare: 5.5, icon: '🏢' }
+            '00937B': { freq: '每月', amountPerShare: 0.072, icon: '🔥' }
         };
 
         const defaultData = {
-            principal: 2074366, monthly: 28000, goal: 5000000, 
+            principal: 2146441, monthly: 28000, goal: 5000000, 
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
-                { id: '0050', name: '元大台灣50', shares: 1000, value: 80550, color: '#f59e0b' },
-                { id: '0052', name: '富邦科技', shares: 18000, value: 822780, color: '#dc2626' },
-                { id: '00937B', name: '群益ESG投等債20+', shares: 40000, value: 582400, color: '#0ea5e9' },
-                { id: '3231', name: '緯創', shares: 2000, value: 271680, color: '#8b5cf6' },
-                { id: '009805', name: '新光美國電力', shares: 3331, value: 50598, color: '#3b82f6' },
-                { id: '00645', name: '富邦日本', shares: 695, value: 35549, color: '#0d9488' },
-                { id: '00955', name: '中信日本商社', shares: 1732, value: 26689, color: '#f97316' },
-                { id: '00646', name: '元大S&P500', shares: 3000, value: 204120, color: '#10b981' }
+                { id: '0050', name: '元大台灣50', shares: 3000, value: 246300, color: '#f59e0b' },
+                { id: '0052', name: '富邦科技', shares: 18000, value: 876240, color: '#dc2626' },
+                { id: '00937B', name: '群益ESG投等債20+', shares: 40000, value: 600000, color: '#0ea5e9' },
+                { id: '009805', name: '新光美國電力', shares: 3331, value: 53463, color: '#3b82f6' },
+                { id: '00645', name: '富邦日本', shares: 695, value: 36835, color: '#0d9488' },
+                { id: '00955', name: '中信日本商社', shares: 3732, value: 59003, color: '#f97316' },
+                { id: '00646', name: '元大S&P500', shares: 4000, value: 274600, color: '#10b981' }
             ],
             // 允許使用者自訂的扣款行程
             schedule: [
@@ -328,17 +326,13 @@
                 { type: 'ex-div', title: '除息：0052 富邦科技', freq: 'yearly', month: 4, day: 20 },
                 { type: 'payout', title: '發放：0052 股利入帳', freq: 'yearly', month: 5, day: 15 },
                 
-                // 3231 預估
-                { type: 'ex-div', title: '預估除息：3231 緯創', freq: 'yearly', month: 6, day: 27 },
-                { type: 'payout', title: '預估發放：3231 緯創', freq: 'yearly', month: 7, day: 25 },
-                
                 // 00713 單純新增日曆發放日
                 { type: 'payout', title: '發放：00713 股利入帳', freq: 'yearly', month: 4, day: 14 }
             ]
         };
 
-        // 升級版本號以載入新行事曆資料
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v36')) || JSON.parse(JSON.stringify(defaultData));
+        // 升級版本號以載入新庫存與修正
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v37')) || JSON.parse(JSON.stringify(defaultData));
         if(!appData.schedule) appData.schedule = [...defaultData.schedule];
         if(!appData.events) appData.events = [...defaultData.events];
 
@@ -460,7 +454,7 @@
                 
                 // 套用至主系統
                 appData = JSON.parse(JSON.stringify(editState)); 
-                localStorage.setItem('investment_partner_solo_v36', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v37', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據與行事曆已保存');
@@ -493,7 +487,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v36', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v37', JSON.stringify(appData));
                 refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
