@@ -105,6 +105,9 @@
                 </div>
                 <div id="holdings-list" class="space-y-4 font-black"></div>
             </section>
+
+            <!-- 獨立的台積電隱含部位區塊 -->
+            <div id="tsmc-exposure-container" class="hidden bg-white p-7 sm:p-8 rounded-[3rem] shadow-xl border-2 border-rose-50 font-black relative overflow-hidden"></div>
         </div>
 
         <!-- Tab: 投資日曆 (New Tab) -->
@@ -287,6 +290,7 @@
 
         const defaultData = {
             principal: 2416712, monthly: 28000, goal: 5000000, 
+            tsmcPrice: 2215, // 新增預設台積電股價
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
@@ -319,9 +323,10 @@
         };
 
         // 升級版本號以載入新庫存與修正
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v44')) || JSON.parse(JSON.stringify(defaultData));
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v47')) || JSON.parse(JSON.stringify(defaultData));
         if(!appData.schedule) appData.schedule = [...defaultData.schedule];
         if(!appData.events) appData.events = [...defaultData.events];
+        if(!appData.tsmcPrice) appData.tsmcPrice = 2215; // 確保舊資料也有初始值
 
         let growthChartInstance = null; let checkedCount = 0;
         let editState = null;
@@ -437,11 +442,11 @@
                     h.value = Math.round(h.shares * currentPrice); 
                     np += h.value; 
                 });
-                editState.principal = np; 
+                appData.principal = np; 
                 
                 // 套用至主系統
                 appData = JSON.parse(JSON.stringify(editState)); 
-                localStorage.setItem('investment_partner_solo_v44', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v47', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據與行事曆已保存');
@@ -459,14 +464,26 @@
                 const res = await fetch(appData.sheetUrl + "&t=" + new Date().getTime()); 
                 const txt = await res.text();
                 const priceMap = {};
+                let hasTsmc = false;
+                
                 txt.split('\n').forEach(r => { 
                     const cols = r.split(','); if(cols.length >= 2) {
                         let id = cols[0].trim().replace(/['"\r\s]/g, '').replace(/^(TPE:|TSE:|OTC:)/i, '').replace(/(\.TW|\.TWO)$/i, '').toUpperCase();
                         if(/^\d+$/.test(id) && id.length < 4) id = id.padStart(4, '0');
                         const rawPrice = cols[1].trim().replace(/['"\r,\s]/g, '');
-                        const price = parseFloat(rawPrice); if(!isNaN(price)) priceMap[id] = price;
+                        const price = parseFloat(rawPrice); 
+                        
+                        if(!isNaN(price)) {
+                            priceMap[id] = price;
+                            // 只要在 CSV 裡面發現 2330，就連帶更新台積電對照股價
+                            if (id === '2330') {
+                                appData.tsmcPrice = price;
+                                hasTsmc = true;
+                            }
+                        }
                     }
                 });
+                
                 let np = 0; let foundCount = 0;
                 appData.holdings.forEach(h => { 
                     const matchId = h.id.toUpperCase();
@@ -474,8 +491,9 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v44', JSON.stringify(appData));
-                refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
+                localStorage.setItem('investment_partner_solo_v47', JSON.stringify(appData));
+                refreshDashboard(); 
+                showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！${hasTsmc ? '(含 2330)' : ''}` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
 
@@ -742,6 +760,91 @@
                 list.appendChild(d);
             });
             document.getElementById('holdings-summary').innerText = (appData.principal/1000000).toFixed(2)+'M Assets';
+
+            // 台積電曝險計算邏輯
+            const tsmcWeights = {
+                '0050': 0.628,
+                '0052': 0.6948,
+                '00981A': 0.0946
+            };
+            window.currentTsmcValue = 0;
+            let tsmcBreakdownHtml = '';
+
+            appData.holdings.forEach(h => {
+                if (tsmcWeights[h.id]) {
+                    const weight = tsmcWeights[h.id];
+                    const val = h.value * weight;
+                    window.currentTsmcValue += val;
+                    tsmcBreakdownHtml += `
+                        <div class="flex justify-between items-center text-sm text-slate-500 font-bold mt-3">
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shadow-sm" style="background:${h.color}"></span>${h.name} (${(weight*100).toFixed(2)}%)</div>
+                            <div class="font-mono text-slate-700 text-base">${formatCurrency(val)}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            const tsmcContainer = document.getElementById('tsmc-exposure-container');
+            if (window.currentTsmcValue > 0) {
+                const tsmcPct = (window.currentTsmcValue / appData.principal * 100).toFixed(1);
+                
+                // 動態計算股數函數，加入儲存機制
+                window.updateTsmcShares = (manualSave = false) => {
+                    const priceInput = document.getElementById('tsmc-price');
+                    if (!priceInput) return;
+                    const price = parseFloat(priceInput.value);
+                    const resEl = document.getElementById('tsmc-shares-result');
+                    
+                    // 如果是用戶手動輸入，就存入 localStorage
+                    if (manualSave && price > 0) {
+                        appData.tsmcPrice = price;
+                        localStorage.setItem('investment_partner_solo_v47', JSON.stringify(appData));
+                    }
+
+                    if (price > 0 && window.currentTsmcValue > 0) {
+                        const shares = Math.floor(window.currentTsmcValue / price);
+                        resEl.innerText = shares.toLocaleString();
+                    } else {
+                        resEl.innerText = '0';
+                    }
+                };
+
+                tsmcContainer.innerHTML = `
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-lg font-black text-slate-800 flex items-center">
+                            <span class="text-2xl mr-2">🇹🇼</span> 隱含台積電 (2330) 部位
+                        </h3>
+                        <span class="text-sm bg-rose-100 text-rose-600 px-2.5 py-1 rounded-lg font-bold tracking-wider shadow-sm">佔總資產 ${tsmcPct}%</span>
+                    </div>
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-inner">
+                        <div class="flex justify-between items-end mb-4 pb-4 border-b border-slate-200">
+                            <div class="text-sm text-slate-800 font-black tracking-widest">推算曝險總市值</div>
+                            <div class="text-3xl sm:text-4xl font-mono font-black text-rose-600 tracking-tighter">${formatCurrency(window.currentTsmcValue)}</div>
+                        </div>
+                        <div class="text-sm text-slate-800 mb-3 font-black tracking-widest border-l-4 border-rose-400 pl-2">來源明細拆解</div>
+                        <div class="space-y-1">
+                            ${tsmcBreakdownHtml}
+                        </div>
+                        
+                        <div class="mt-6 pt-5 border-t border-slate-200">
+                            <div class="flex items-center justify-between bg-white border border-rose-100 rounded-xl p-4 shadow-sm">
+                                <div class="text-sm text-slate-600 font-bold flex items-center"><span class="mr-1.5 text-lg">💡</span>假設台積電當前股價</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-400 font-bold">$</span>
+                                    <input type="number" id="tsmc-price" value="${appData.tsmcPrice}" oninput="window.updateTsmcShares(true)" class="w-24 p-1.5 text-sm font-mono border rounded-lg outline-none text-center font-black bg-slate-50 focus:bg-white focus:border-rose-300 transition-colors">
+                                </div>
+                            </div>
+                            <div class="mt-3 text-right text-sm font-bold text-slate-500">
+                                約等於持有 <span id="tsmc-shares-result" class="text-rose-600 font-mono text-2xl px-1">---</span> 股
+                            </div>
+                        </div>
+                    </div>
+                `;
+                tsmcContainer.classList.remove('hidden');
+                window.updateTsmcShares(); 
+            } else {
+                tsmcContainer.classList.add('hidden');
+            }
         }
 
         function calculate() {
