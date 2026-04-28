@@ -286,17 +286,16 @@
         };
 
         const defaultData = {
-            principal: 2260518, monthly: 28000, goal: 5000000, 
+            principal: 2416712, monthly: 28000, goal: 5000000, 
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
-                { id: '0050', name: '元大台灣50', shares: 5000, value: 431750, color: '#f59e0b' },
-                { id: '0052', name: '富邦科技', shares: 20000, value: 1007000, color: '#dc2626' },
-                { id: '00645', name: '富邦日本', shares: 1750, value: 91438, color: '#0d9488' },
-                { id: '00646', name: '元大S&P500', shares: 4071, value: 286395, color: '#10b981' },
-                { id: '009805', name: '新光美國電力', shares: 3642, value: 58636, color: '#3b82f6' },
-                { id: '00937B', name: '群益ESG投等債20+', shares: 21000, value: 312060, color: '#0ea5e9' },
-                { id: '00955', name: '中信日本商社', shares: 4922, value: 73239, color: '#f97316' }
+                { id: '0050', name: '元大台灣50', shares: 5000, value: 460000, color: '#f59e0b' },
+                { id: '0052', name: '富邦科技', shares: 24000, value: 1291200, color: '#dc2626' },
+                { id: '00645', name: '富邦日本', shares: 1806, value: 95447, color: '#0d9488' },
+                { id: '00646', name: '元大S&P500', shares: 6071, value: 431345, color: '#10b981' },
+                { id: '009805', name: '新光美國電力', shares: 3642, value: 60384, color: '#3b82f6' },
+                { id: '00955', name: '中信日本商社', shares: 5120, value: 78336, color: '#f97316' }
             ],
             // 允許使用者自訂的扣款行程
             schedule: [
@@ -309,18 +308,6 @@
                 // 0050
                 { type: 'ex-div', title: '除息：0050 元大台灣50', freq: 'yearly', month: 1, day: 22 },
                 { type: 'payout', title: '發放：0050 股利入帳', freq: 'yearly', month: 2, day: 11 },
-                
-                // 00937B 前半段已公告時程
-                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 1, day: 20 },
-                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 2, day: 26 },
-                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 3, day: 17 },
-                { type: 'ex-div', title: '除息：00937B 群益ESG投等債', freq: 'yearly', month: 4, day: 20 },
-                
-                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 1, day: 13 },
-                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 2, day: 13 },
-                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 3, day: 25 },
-                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 4, day: 14 },
-                { type: 'payout', title: '發放：00937B 股利入帳', freq: 'yearly', month: 5, day: 15 },
 
                 // 0052
                 { type: 'ex-div', title: '除息：0052 富邦科技', freq: 'yearly', month: 4, day: 20 },
@@ -332,7 +319,7 @@
         };
 
         // 升級版本號以載入新庫存與修正
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v43')) || JSON.parse(JSON.stringify(defaultData));
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v44')) || JSON.parse(JSON.stringify(defaultData));
         if(!appData.schedule) appData.schedule = [...defaultData.schedule];
         if(!appData.events) appData.events = [...defaultData.events];
 
@@ -454,7 +441,7 @@
                 
                 // 套用至主系統
                 appData = JSON.parse(JSON.stringify(editState)); 
-                localStorage.setItem('investment_partner_solo_v43', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v44', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據與行事曆已保存');
@@ -487,7 +474,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v43', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v44', JSON.stringify(appData));
                 refreshDashboard(); showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
         }
