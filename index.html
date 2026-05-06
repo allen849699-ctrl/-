@@ -289,17 +289,17 @@
         };
 
         const defaultData = {
-            principal: 2416712, monthly: 28000, goal: 5000000, 
-            tsmcPrice: 2215, // 新增預設台積電股價
+            principal: 2511146, monthly: 28000, goal: 5000000, 
+            tsmcPrice: 2215, // 預設台積電股價
             sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0nHzHWkT-eCvVNsvjl1xpydXhuYLTe04MPsNFH7uSw9oCef9MSihyciNn4F9iwJYvwD6y5MU5_fwt/pub?output=csv',
             lastUpdate: '',
             holdings: [
-                { id: '0050', name: '元大台灣50', shares: 5000, value: 460000, color: '#f59e0b' },
-                { id: '0052', name: '富邦科技', shares: 24000, value: 1291200, color: '#dc2626' },
-                { id: '00645', name: '富邦日本', shares: 1806, value: 95447, color: '#0d9488' },
-                { id: '00646', name: '元大S&P500', shares: 6071, value: 431345, color: '#10b981' },
-                { id: '009805', name: '新光美國電力', shares: 3642, value: 60384, color: '#3b82f6' },
-                { id: '00955', name: '中信日本商社', shares: 5120, value: 78336, color: '#f97316' }
+                { id: '0050', name: '元大台灣50', shares: 5000, value: 478750, color: '#f59e0b' },
+                { id: '0052', name: '富邦科技', shares: 24000, value: 1346400, color: '#dc2626' },
+                { id: '00645', name: '富邦日本', shares: 1862, value: 98872, color: '#0d9488' },
+                { id: '00646', name: '元大S&P500', shares: 6071, value: 438933, color: '#10b981' },
+                { id: '009805', name: '新光美國電力', shares: 3642, value: 63225, color: '#3b82f6' },
+                { id: '00955', name: '中信日本商社', shares: 5307, value: 84966, color: '#f97316' }
             ],
             // 允許使用者自訂的扣款行程
             schedule: [
@@ -323,7 +323,7 @@
         };
 
         // 升級版本號以載入新庫存與修正
-        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v47')) || JSON.parse(JSON.stringify(defaultData));
+        let appData = JSON.parse(localStorage.getItem('investment_partner_solo_v50')) || JSON.parse(JSON.stringify(defaultData));
         if(!appData.schedule) appData.schedule = [...defaultData.schedule];
         if(!appData.events) appData.events = [...defaultData.events];
         if(!appData.tsmcPrice) appData.tsmcPrice = 2215; // 確保舊資料也有初始值
@@ -446,7 +446,7 @@
                 
                 // 套用至主系統
                 appData = JSON.parse(JSON.stringify(editState)); 
-                localStorage.setItem('investment_partner_solo_v47', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v50', JSON.stringify(appData));
                 closeEditModal(); 
                 refreshDashboard(); 
                 showToast('✅ 數據與行事曆已保存');
@@ -491,7 +491,7 @@
                     np += h.value; 
                 });
                 appData.principal = np; appData.lastUpdate = new Date().toLocaleString();
-                localStorage.setItem('investment_partner_solo_v47', JSON.stringify(appData));
+                localStorage.setItem('investment_partner_solo_v50', JSON.stringify(appData));
                 refreshDashboard(); 
                 showToast(foundCount > 0 ? `✅ 已成功同步 ${foundCount} 檔報價！${hasTsmc ? '(含 2330)' : ''}` : '⚠️ 同步完成但代號未匹配。');
             } catch (e) { showToast('❌ 同步失敗'); } finally { btn.innerHTML = '報價同步'; btn.disabled = false; }
@@ -798,7 +798,7 @@
                     // 如果是用戶手動輸入，就存入 localStorage
                     if (manualSave && price > 0) {
                         appData.tsmcPrice = price;
-                        localStorage.setItem('investment_partner_solo_v47', JSON.stringify(appData));
+                        localStorage.setItem('investment_partner_solo_v50', JSON.stringify(appData));
                     }
 
                     if (price > 0 && window.currentTsmcValue > 0) {
